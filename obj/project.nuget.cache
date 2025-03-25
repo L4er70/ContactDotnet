@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "l/w9i/Aj1auspZFC3yj/TK1MnogA8iIYxvxOxkxISvbE/HM2fWS6XYsYikS0ma5Q6HLI9DFz4IjJGrZgMlzQvQ==",
+  "dgSpecHash": "yZrhx+57tk/hYwFv4mzbIcV8jKTN6YDu/NTO5n/KF+0IH+sPteoGIiK9Fob43Kl1AuPxhIenOjt7F8K2a1CfjQ==",
   "success": true,
   "projectFilePath": "/home/laert/Desktop/ContactBook/ContactBook.csproj",
   "expectedPackageFiles": [
@@ -84,6 +84,7 @@
     "/home/laert/.nuget/packages/microsoft.entityframeworkcore.design/9.0.3/microsoft.entityframeworkcore.design.9.0.3.nupkg.sha512",
     "/home/laert/.nuget/packages/microsoft.entityframeworkcore.relational/9.0.3/microsoft.entityframeworkcore.relational.9.0.3.nupkg.sha512",
     "/home/laert/.nuget/packages/microsoft.entityframeworkcore.sqlserver/9.0.3/microsoft.entityframeworkcore.sqlserver.9.0.3.nupkg.sha512",
+    "/home/laert/.nuget/packages/microsoft.entityframeworkcore.tools/9.0.3/microsoft.entityframeworkcore.tools.9.0.3.nupkg.sha512",
     "/home/laert/.nuget/packages/microsoft.extensions.caching.abstractions/9.0.3/microsoft.extensions.caching.abstractions.9.0.3.nupkg.sha512",
     "/home/laert/.nuget/packages/microsoft.extensions.caching.memory/9.0.3/microsoft.extensions.caching.memory.9.0.3.nupkg.sha512",
     "/home/laert/.nuget/packages/microsoft.extensions.configuration.abstractions/9.0.3/microsoft.extensions.configuration.abstractions.9.0.3.nupkg.sha512",
