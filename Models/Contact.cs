@@ -8,8 +8,8 @@ namespace ContactBook.Models{
         public required string FirstName { get; set; }
         [Required]
         public required string LastName { get; set; }
-        public ICollection<Phone> Phones { get; set; }
-        public ICollection<Address> Addresses { get; set; }
-        public ICollection<Email> Emails { get; set; }
+        public required ICollection<Phone> Phones { get; set; }
+        public required ICollection<Address> Addresses { get; set; }
+        public required ICollection<Email> Emails { get; set; }
     }
 }
