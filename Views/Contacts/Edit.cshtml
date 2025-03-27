@@ -23,14 +23,41 @@
                 <input asp-for="LastName" class="form-control" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
+           <!--Emails-->
+           @{
+            int index = 0;
+           }
+           @foreach (var email in Model.Emails)
+           {
+                <div class="form-group">
+                    <input type="hidden" name="Emails.Index" value="@index" />
+                    <label for="Emails[@index].EmailAddress" class="control-label">Email Address </label>
+                    <input type="text" name="Emails[@index].EmailAddress" value="@email.EmailAddress" class="form-control" />
+                   
+                </div>
+                index++;
+            }
+            
+            <!--Phones-->
             <div class="form-group">
-                <label asp-for="Emails" class="control-label"></label>
-                <input asp-for="Emails" class="form-control" />
-                <span asp-validation-for="Emails" class="text-danger"></span>
+                <label asp-for="Phones" class="control-label"></label>
+                <input asp-for="Phones" class="form-control" />
+                <span asp-validation-for="Phones" class="text-danger"></span>
+            </div>
+            <!--Addresses-->
+            <div class="form-group">
+                <label asp-for="Addresses" class="control-label"></label>
+                <input asp-for="Addresses" class="form-control" />
+                <span asp-validation-for="Addresses" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Save" class="btn btn-primary" /> |
+                <a asp-action="Index">Back to List</a>
             </div>
+           
+           
+           
+         
         </form>
     </div>
 </div>
