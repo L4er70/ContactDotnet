@@ -9,22 +9,50 @@
 <h4>Contact</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form asp-action="Create" method="post">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <label asp-for="FirstName" class="control-label"></label>
                 <input asp-for="FirstName" class="form-control" />
                 <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="LastName" class="control-label"></label>
                 <input asp-for="LastName" class="form-control" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input name="Emails[0].EmailAddress" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input name="Phones[0].PhoneNumber" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label>Street</label>
+                <input name="Addresses[0].Street" class="form-control" />
+
+                <label>City</label>
+                <input name="Addresses[0].City" class="form-control" />
+
+                <label>State</label>
+                <input name="Addresses[0].State" class="form-control" />
+
+                <label>Zip</label>
+                <input name="Addresses[0].Zip" class="form-control" />
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
+               
             </div>
         </form>
     </div>
@@ -33,4 +61,3 @@
 <div>
     <a asp-action="Index">Back to List</a>
 </div>
-

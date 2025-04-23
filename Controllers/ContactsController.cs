@@ -19,10 +19,16 @@ namespace ContactBook.Controllers
         }
 
         // GET: Contacts
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Contacts.ToListAsync());
-        }
+      public async Task<IActionResult> Index()
+{
+    var contacts = await _context.Contacts
+        .Include(c => c.Emails)
+        .Include(c => c.Phones)
+        .Include(c => c.Addresses)
+        .ToListAsync();
+
+    return View(contacts);
+}
 
         // GET: Contacts/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -52,22 +58,34 @@ namespace ContactBook.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName")] Contact contact)
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,Addresses")] Contact contact)
+{
+    if (ModelState.IsValid)
+    {
+        // Ensure nested objects are linked to the parent contact.
+        foreach (var email in contact.Emails)
         {
-            if (!ModelState.IsValid)
-            {
-                var errors= ModelState.Values.SelectMany(v => v.Errors);
-                foreach (var error in errors)
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
-                _context.Add(contact);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(contact);
+            email.Contact = contact;  // Link the Contact to Email
         }
+
+        foreach (var phone in contact.Phones)
+        {
+            phone.Contact = contact;  // Link the Contact to Phone
+        }
+
+        foreach (var address in contact.Addresses)
+        {
+            address.Contact = contact;  // Link the Contact to Address
+        }
+
+        _context.Add(contact);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+    return View(contact);
+}
+
 
         // GET: Contacts/Edit/5
         public async Task<IActionResult> Edit(int? id)
