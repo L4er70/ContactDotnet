@@ -14,50 +14,183 @@
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="form-group">
+            <!-- Basic Info -->
+            <div class="form-group mb-3">
                 <label asp-for="FirstName" class="control-label"></label>
                 <input asp-for="FirstName" class="form-control" />
                 <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="LastName" class="control-label"></label>
                 <input asp-for="LastName" class="form-control" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label>Email Address</label>
-                <input name="Emails[0].EmailAddress" class="form-control" />
+            <!-- Email Section -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Email Addresses</h5>
+                    <div id="emailContainer">
+                        @if (Model?.Emails != null && Model.Emails.Any())
+                        {
+                            @for (int i = 0; i < Model.Emails.Count(); i++)
+                            {
+                                <div class="form-group mb-2 email-entry">
+                                    <div class="input-group">
+                                        <input name="Emails[@i].EmailAddress" class="form-control" type="email" value="@Model.Emails.ElementAt(i).EmailAddress" />
+                                        <button type="button" class="btn btn-danger remove-email">Remove</button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="addEmail">Add Email</button>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input name="Phones[0].PhoneNumber" class="form-control" />
+            <!-- Phone Section -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Phone Numbers</h5>
+                    <div id="phoneContainer">
+                        @if (Model?.Phones != null && Model.Phones.Any())
+                        {
+                            @for (int i = 0; i < Model.Phones.Count(); i++)
+                            {
+                                <div class="form-group mb-2 phone-entry">
+                                    <div class="input-group">
+                                        <input name="Phones[@i].PhoneNumber" class="form-control" type="tel" value="@Model.Phones.ElementAt(i).PhoneNumber" />
+                                        <button type="button" class="btn btn-danger remove-phone">Remove</button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="addPhone">Add Phone</button>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Street</label>
-                <input name="Addresses[0].Street" class="form-control" />
-
-                <label>City</label>
-                <input name="Addresses[0].City" class="form-control" />
-
-                <label>State</label>
-                <input name="Addresses[0].State" class="form-control" />
-
-                <label>Zip</label>
-                <input name="Addresses[0].Zip" class="form-control" />
+            <!-- Address Section -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Addresses</h5>
+                    <div id="addressContainer">
+                        @if (Model?.Addresses != null && Model.Addresses.Any())
+                        {
+                            @for (int i = 0; i < Model.Addresses.Count(); i++)
+                            {
+                                <div class="address-entry mb-3 border p-3">
+                                    <div class="form-group mb-2">
+                                        <label>Street</label>
+                                        <input name="Addresses[@i].Street" class="form-control" value="@Model.Addresses.ElementAt(i).Street" />
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label>City</label>
+                                            <input name="Addresses[@i].City" class="form-control" value="@Model.Addresses.ElementAt(i).City" />
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label>State</label>
+                                            <input name="Addresses[@i].State" class="form-control" value="@Model.Addresses.ElementAt(i).State" />
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label>Zip</label>
+                                            <input name="Addresses[@i].Zip" class="form-control" value="@Model.Addresses.ElementAt(i).Zip" />
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-danger remove-address">Remove Address</button>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="addAddress">Add Address</button>
+                </div>
             </div>
 
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
-               
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function () {
+            let emailCount = $('#emailContainer .email-entry').length;
+            let phoneCount = $('#phoneContainer .phone-entry').length;
+            let addressCount = $('#addressContainer .address-entry').length;
+
+            // Add Email
+            $('#addEmail').click(function () {
+                const html = `
+                    <div class="form-group mb-2 email-entry">
+                        <div class="input-group">
+                            <input name="Emails[${emailCount}].EmailAddress" class="form-control" type="email" />
+                            <button type="button" class="btn btn-danger remove-email">Remove</button>
+                        </div>
+                    </div>`;
+                $('#emailContainer').append(html);
+                emailCount++;
+            });
+
+            // Add Phone
+            $('#addPhone').click(function () {
+                const html = `
+                    <div class="form-group mb-2 phone-entry">
+                        <div class="input-group">
+                            <input name="Phones[${phoneCount}].PhoneNumber" class="form-control" type="tel" />
+                            <button type="button" class="btn btn-danger remove-phone">Remove</button>
+                        </div>
+                    </div>`;
+                $('#phoneContainer').append(html);
+                phoneCount++;
+            });
+
+            // Add Address
+            $('#addAddress').click(function () {
+                const html = `
+                    <div class="address-entry mb-3 border p-3">
+                        <div class="form-group mb-2">
+                            <label>Street</label>
+                            <input name="Addresses[${addressCount}].Street" class="form-control" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label>City</label>
+                                <input name="Addresses[${addressCount}].City" class="form-control" />
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label>State</label>
+                                <input name="Addresses[${addressCount}].State" class="form-control" />
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label>Zip</label>
+                                <input name="Addresses[${addressCount}].Zip" class="form-control" />
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-danger remove-address">Remove Address</button>
+                    </div>`;
+                $('#addressContainer').append(html);
+                addressCount++;
+            });
+
+            // Remove buttons
+            $(document).on('click', '.remove-email', function() {
+                $(this).closest('.email-entry').remove();
+            });
+
+            $(document).on('click', '.remove-phone', function() {
+                $(this).closest('.phone-entry').remove();
+            });
+
+            $(document).on('click', '.remove-address', function() {
+                $(this).closest('.address-entry').remove();
+            });
+        });
+    </script>
+}

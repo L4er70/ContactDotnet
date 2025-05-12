@@ -19,16 +19,16 @@ namespace ContactBook.Controllers
         }
 
         // GET: Contacts
-      public async Task<IActionResult> Index()
-{
-    var contacts = await _context.Contacts
-        .Include(c => c.Emails)
-        .Include(c => c.Phones)
-        .Include(c => c.Addresses)
-        .ToListAsync();
+        public async Task<IActionResult> Index()
+        {
+            var contacts = await _context.Contacts
+                .Include(c => c.Emails)
+                .Include(c => c.Phones)
+                .Include(c => c.Addresses)
+                .ToListAsync();
 
-    return View(contacts);
-}
+            return View(contacts);
+        }
 
         // GET: Contacts/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -58,34 +58,55 @@ namespace ContactBook.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,Addresses")] Contact contact)
-{
-    if (ModelState.IsValid)
-    {
-        // Ensure nested objects are linked to the parent contact.
-        foreach (var email in contact.Emails)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,Addresses")] Contact contact)
         {
-            email.Contact = contact;  // Link the Contact to Email
+            if (ModelState.IsValid)
+            {
+                // Ensure mandatory fields (FirstName and LastName) are valid
+                if (string.IsNullOrWhiteSpace(contact.FirstName) || string.IsNullOrWhiteSpace(contact.LastName))
+                {
+                    ModelState.AddModelError(string.Empty, "First Name and Last Name are required.");
+                    return View(contact);
+                }
+
+                // Initialize collections if they are null
+                contact.Emails = contact.Emails?.Where(e => !string.IsNullOrWhiteSpace(e.EmailAddress)).ToList() ?? new List<Email>();
+                contact.Phones = contact.Phones?.Where(p => !string.IsNullOrWhiteSpace(p.PhoneNumber)).ToList() ?? new List<Phone>();
+                contact.Addresses = contact.Addresses?.Where(a => 
+                    !string.IsNullOrWhiteSpace(a.Street) || 
+                    !string.IsNullOrWhiteSpace(a.City) || 
+                    !string.IsNullOrWhiteSpace(a.State) || 
+                    !string.IsNullOrWhiteSpace(a.Zip)
+                ).ToList() ?? new List<Address>();
+
+                // Link nested objects to the parent contact
+                foreach (var email in contact.Emails)
+                {
+                    email.Contact = contact;
+                }
+
+                foreach (var phone in contact.Phones)
+                {
+                    phone.Contact = contact;
+                }
+
+                foreach (var address in contact.Addresses)
+                {
+                    address.Contact = contact;
+                    // Ensure null strings are empty strings to avoid database issues
+                    address.Street = address.Street ?? string.Empty;
+                    address.City = address.City ?? string.Empty;
+                    address.State = address.State ?? string.Empty;
+                    address.Zip = address.Zip ?? string.Empty;
+                }
+
+                _context.Add(contact);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(contact);
         }
-
-        foreach (var phone in contact.Phones)
-        {
-            phone.Contact = contact;  // Link the Contact to Phone
-        }
-
-        foreach (var address in contact.Addresses)
-        {
-            address.Contact = contact;  // Link the Contact to Address
-        }
-
-        _context.Add(contact);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-    return View(contact);
-}
-
 
         // GET: Contacts/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -96,10 +117,10 @@ public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,
             }
 
             var contact = await _context.Contacts
-            .Include(c => c.Phones)
-            .Include(c => c.Addresses)
-            .Include(c => c.Emails)
-            .FirstOrDefaultAsync(m => m.Id == id);
+                .Include(c => c.Phones)
+                .Include(c => c.Addresses)
+                .Include(c => c.Emails)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (contact == null)
             {
                 return NotFound();
@@ -123,8 +144,45 @@ public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,
             {
                 try
                 {
+                    // Ensure mandatory fields are set
+                    if (string.IsNullOrWhiteSpace(contact.FirstName) || string.IsNullOrWhiteSpace(contact.LastName))
+                    {
+                        ModelState.AddModelError(string.Empty, "First Name and Last Name are required.");
+                        return View(contact);
+                    }
+
+                    // Initialize collections if they are null
+                    contact.Emails = contact.Emails?.Where(e => !string.IsNullOrWhiteSpace(e.EmailAddress)).ToList() ?? new List<Email>();
+                    contact.Phones = contact.Phones?.Where(p => !string.IsNullOrWhiteSpace(p.PhoneNumber)).ToList() ?? new List<Phone>();
+                    contact.Addresses = contact.Addresses?.Where(a => 
+                        !string.IsNullOrWhiteSpace(a.Street) || 
+                        !string.IsNullOrWhiteSpace(a.City) || 
+                        !string.IsNullOrWhiteSpace(a.State) || 
+                        !string.IsNullOrWhiteSpace(a.Zip)
+                    ).ToList() ?? new List<Address>();
+
+                    // Link nested objects to the parent Contact
+                    foreach (var email in contact.Emails)
+                    {
+                        email.Contact = contact;
+                    }
+                    foreach (var phone in contact.Phones)
+                    {
+                        phone.Contact = contact;
+                    }
+                    foreach (var address in contact.Addresses)
+                    {
+                        address.Contact = contact;
+                        // Ensure null strings are empty strings to avoid database issues
+                        address.Street = address.Street ?? string.Empty;
+                        address.City = address.City ?? string.Empty;
+                        address.State = address.State ?? string.Empty;
+                        address.Zip = address.Zip ?? string.Empty;
+                    }
+
                     _context.Update(contact);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -137,7 +195,6 @@ public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(contact);
         }
