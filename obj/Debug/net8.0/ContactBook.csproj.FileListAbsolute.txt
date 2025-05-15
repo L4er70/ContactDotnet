@@ -275,3 +275,6 @@
 /home/laert/Desktop/ContactBook/bin/Debug/net8.0/zh-Hans/Microsoft.CodeAnalysis.Scripting.resources.dll
 /home/laert/Desktop/ContactBook/bin/Debug/net8.0/zh-Hant/Microsoft.CodeAnalysis.Scripting.resources.dll
 /home/laert/Desktop/ContactBook/obj/Debug/net8.0/ContactBook.sourcelink.json
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/Microsoft.AspNetCore.Identity.UI.dll
+/home/laert/Desktop/ContactBook/obj/Debug/net8.0/ContactBook.MvcApplicationPartsAssemblyInfo.cs

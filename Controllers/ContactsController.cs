@@ -6,19 +6,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ContactBook.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace ContactBook.Controllers
 {
+    [Authorize]  // Require authentication for all actions
     public class ContactsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ContactsController(ApplicationDbContext context)
+        public ContactsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Contacts
+        [Authorize(Roles = "Reader,Editor,Admin")]
         public async Task<IActionResult> Index()
         {
             var contacts = await _context.Contacts
@@ -31,6 +37,7 @@ namespace ContactBook.Controllers
         }
 
         // GET: Contacts/Details/5
+        [Authorize(Roles = "Reader,Editor,Admin")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -49,16 +56,16 @@ namespace ContactBook.Controllers
         }
 
         // GET: Contacts/Create
+        [Authorize(Roles = "Editor,Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
         // POST: Contacts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Editor,Admin")]
         public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,Addresses")] Contact contact)
         {
             if (ModelState.IsValid)
@@ -109,6 +116,7 @@ namespace ContactBook.Controllers
         }
 
         // GET: Contacts/Edit/5
+        [Authorize(Roles = "Editor,Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -129,10 +137,9 @@ namespace ContactBook.Controllers
         }
 
         // POST: Contacts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Editor,Admin")]
         public async Task<IActionResult> Edit(int id, Contact contact)
         {
             if (id != contact.Id)
@@ -200,6 +207,7 @@ namespace ContactBook.Controllers
         }
 
         // GET: Contacts/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -220,6 +228,7 @@ namespace ContactBook.Controllers
         // POST: Contacts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var contact = await _context.Contacts.FindAsync(id);
