@@ -41,5 +41,16 @@ namespace ContactBook.Services
                 }
             }
         }
+
+        public static async Task AssignDefaultRoleAsync(
+            UserManager<ApplicationUser> userManager,
+            ApplicationUser user)
+        {
+            // Assign Reader role to new users by default
+            if (!await userManager.IsInRoleAsync(user, "Reader"))
+            {
+                await userManager.AddToRoleAsync(user, "Reader");
+            }
+        }
     }
 }

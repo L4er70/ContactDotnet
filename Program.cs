@@ -15,8 +15,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false; // Make this optional
+    options.Password.RequiredLength = 6; // Reduce minimum length
+    
+    options.SignIn.RequireConfirmedAccount = false; // Don't require email confirmation
+    options.SignIn.RequireConfirmedEmail = false; // Don't require email confirmation
+    
+    options.User.RequireUniqueEmail = true; // Ensure email addresses are unique
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultUI()

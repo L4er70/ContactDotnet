@@ -1,0 +1,41 @@
+@model IEnumerable<ContactBook.Models.UserViewModel>
+
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<h2>User Management</h2>
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Current Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.FirstName @user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>@user.CurrentRole</td>
+                    <td>
+                        <form asp-action="UpdateRole" method="post" class="d-inline">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <select name="role" class="form-select d-inline w-auto">
+                                <option value="Reader" selected="@(user.CurrentRole == "Reader")">Reader</option>
+                                <option value="Editor" selected="@(user.CurrentRole == "Editor")">Editor</option>
+                                <option value="Admin" selected="@(user.CurrentRole == "Admin")">Admin</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Update Role</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
