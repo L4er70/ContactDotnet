@@ -1,10 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ContactBook.Models;
-using ContactBook.Services;
 
 namespace ContactBook.Areas.Identity.Pages.Account
 {
@@ -22,31 +20,29 @@ namespace ContactBook.Areas.Identity.Pages.Account
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            Input = new();
-            ReturnUrl = string.Empty;
         }
 
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = new();
 
-        public string ReturnUrl { get; set; }
+        public string ReturnUrl { get; set; } = string.Empty;
 
         public class InputModel
         {
-            [Required]
+            [Required(ErrorMessage = "First Name is required")]
             [Display(Name = "First Name")]
             public string FirstName { get; set; } = string.Empty;
 
-            [Required]
+            [Required(ErrorMessage = "Last Name is required")]
             [Display(Name = "Last Name")]
             public string LastName { get; set; } = string.Empty;
 
-            [Required]
+            [Required(ErrorMessage = "Email is required")]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; } = string.Empty;
 
-            [Required]
+            [Required(ErrorMessage = "Password is required")]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
@@ -58,41 +54,81 @@ namespace ContactBook.Areas.Identity.Pages.Account
             public string ConfirmPassword { get; set; } = string.Empty;
         }
 
-        public IActionResult OnGet(string? returnUrl = null)
+        public void OnGet(string? returnUrl = null)
         {
             ReturnUrl = returnUrl ?? Url.Content("~/");
-            return Page();
+            // Do NOT reset Input here
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-            if (ModelState.IsValid)
+
+            if (!ModelState.IsValid)
             {
-                var user = new ApplicationUser 
-                { 
-                    UserName = Input.Email, 
+                foreach (var key in ModelState.Keys)
+                {
+                    var entry = ModelState[key];
+                    if (entry?.Errors != null)
+                    {
+                        var errors = entry.Errors;
+                        foreach (var error in errors)
+                        {
+                            _logger.LogWarning($"ModelState error for {key}: {error.ErrorMessage}");
+                            Console.WriteLine($"ModelState error for {key}: {error.ErrorMessage}");
+                        }
+                    }
+                }
+                return Page();
+            }
+
+            try
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = Input.Email,
                     Email = Input.Email,
                     FirstName = Input.FirstName,
-                    LastName = Input.LastName
+                    LastName = Input.LastName,
+                    EmailConfirmed = true
                 };
 
+                _logger.LogInformation("Attempting to create user {Email}", Input.Email);
+                Console.WriteLine($"Attempting to create user {Input.Email}");
                 var result = await _userManager.CreateAsync(user, Input.Password);
+
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
-
-                    // Assign default Reader role
-                    await IdentityDataInitializer.AssignDefaultRoleAsync(_userManager, user);
-
-                    // Sign in the user
+                    _logger.LogInformation("User {Email} created successfully", Input.Email);
+                    Console.WriteLine($"User {Input.Email} created successfully");
+                    // Add user to Reader role
+                    var roleResult = await _userManager.AddToRoleAsync(user, "Reader");
+                    if (!roleResult.Succeeded)
+                    {
+                        var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                        _logger.LogError("Failed to add user to Reader role: {Errors}", roleErrors);
+                        Console.WriteLine($"Failed to add user to Reader role: {roleErrors}");
+                        ModelState.AddModelError(string.Empty, "Failed to assign user role.");
+                        return Page();
+                    }
+                    _logger.LogInformation("User {Email} added to Reader role", Input.Email);
+                    Console.WriteLine($"User {Input.Email} added to Reader role");
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return LocalRedirect(returnUrl);
                 }
+
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
+                    _logger.LogError("User creation failed: {Error}", error.Description);
+                    Console.WriteLine($"User creation failed: {error.Description}");
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception during registration");
+                Console.WriteLine($"Exception during registration: {ex.Message}\n{ex.StackTrace}");
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred.");
             }
 
             return Page();
