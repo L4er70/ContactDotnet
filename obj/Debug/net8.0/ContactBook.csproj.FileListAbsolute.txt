@@ -278,3 +278,12 @@
 /home/laert/Desktop/ContactBook/bin/Debug/net8.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 /home/laert/Desktop/ContactBook/bin/Debug/net8.0/Microsoft.AspNetCore.Identity.UI.dll
 /home/laert/Desktop/ContactBook/obj/Debug/net8.0/ContactBook.MvcApplicationPartsAssemblyInfo.cs
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/ClosedXML.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/ClosedXML.Parser.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/CsvHelper.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/DocumentFormat.OpenXml.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/DocumentFormat.OpenXml.Framework.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/ExcelNumberFormat.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/RBush.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/SixLabors.Fonts.dll
+/home/laert/Desktop/ContactBook/bin/Debug/net8.0/System.IO.Packaging.dll
