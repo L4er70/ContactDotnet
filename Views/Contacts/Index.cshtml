@@ -1,67 +1,91 @@
 @model IEnumerable<ContactBook.Models.Contact>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Contacts";
 }
 
-<h1>Index</h1>
+<style>
+    body {
+        background: #f8fafc;
+    }
+    .contacts-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        padding: 2rem 2.5rem 2rem 2.5rem;
+        margin-top: 2rem;
+    }
+    .contacts-title {
+        font-weight: 700;
+        color: #4f8cff;
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+    .table {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    }
+    .table th {
+        background: #f0f6ff;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    .btn-primary {
+        background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
+        border: none;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #38b6ff 0%, #4f8cff 100%);
+    }
+    .btn-outline-primary, .btn-outline-success {
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    .action-links a {
+        margin-right: 8px;
+    }
+</style>
 
-<p>
-    <a asp-action="Create">Create New</a>
-    <a asp-action="ExportCsv" class="btn btn-outline-primary btn-sm ms-2">Export CSV</a>
-    <a asp-action="ExportExcel" class="btn btn-outline-success btn-sm ms-2">Export Excel</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LastName)
-            </th>
-             <th>
-                @Html.DisplayNameFor(model => model.Emails)
-            </th>
-             <th>
-                @Html.DisplayNameFor(model => model.Phones)
-            </th>
-             <th>
-                @Html.DisplayNameFor(model => model.Addresses)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-    <tr>
-        <td>@item.FirstName</td>
-        <td>@item.LastName</td>
-        <td>
-            @foreach (var email in item.Emails)
-            {
-                <div>@email.EmailAddress</div>
-            }
-        </td>
-        <td>
-            @foreach (var phone in item.Phones)
-            {
-                <div>@phone.PhoneNumber</div>
-            }
-        </td>
-        <td>
-            @foreach (var address in item.Addresses)
-            {
-                <div>@address.Street, @address.City, @address.State, @address.Zip</div>
-            }
-        </td>
-        <td>
-            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-            <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-        </td>
-    </tr>
-}
-</tbody>
-
-</table>
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-9">
+        <div class="contacts-card">
+            <h1 class="contacts-title">Contacts</h1>
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <a asp-action="Create" class="btn btn-primary px-4">Create New</a>
+                </div>
+                <div>
+                    <a asp-action="ExportCsv" class="btn btn-outline-primary btn-sm ms-2">Export CSV</a>
+                    <a asp-action="ExportExcel" class="btn btn-outline-success btn-sm ms-2">Export Excel</a>
+                </div>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.FirstName)</th>
+                        <th>@Html.DisplayNameFor(model => model.LastName)</th>
+                        <th>Phone Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model) {
+                    <tr>
+                        <td>@item.FirstName</td>
+                        <td>@item.LastName</td>
+                        <td>@item.Phones.FirstOrDefault()?.PhoneNumber</td>
+                        <td class="action-links">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">Details</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

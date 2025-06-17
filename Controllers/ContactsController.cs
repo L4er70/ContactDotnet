@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using CsvHelper;
 using ClosedXML.Excel;
+using Microsoft.Extensions.Logging;
 
 namespace ContactBook.Controllers
 {
@@ -20,11 +21,13 @@ namespace ContactBook.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<ContactsController> _logger;
 
-        public ContactsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public ContactsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ILogger<ContactsController> logger)
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
 
         // GET: Contacts
@@ -70,18 +73,32 @@ namespace ContactBook.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Editor,Admin")]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Phones,Emails,Addresses")] Contact contact)
+        public async Task<IActionResult> Create(Contact contact)
         {
-            if (ModelState.IsValid)
+            try
             {
-                // Ensure mandatory fields (FirstName and LastName) are valid
+                // Log received data
+                _logger.LogInformation("Received contact data - FirstName: {FirstName}, LastName: {LastName}", 
+                    contact.FirstName, contact.LastName);
+                _logger.LogInformation("Collections - Emails: {EmailCount}, Phones: {PhoneCount}, Addresses: {AddressCount}", 
+                    contact.Emails?.Count ?? 0, contact.Phones?.Count ?? 0, contact.Addresses?.Count ?? 0);
+
+                if (!ModelState.IsValid)
+                {
+                    foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        _logger.LogWarning("ModelState error: {Error}", modelError.ErrorMessage);
+                    }
+                    return View(contact);
+                }
+
                 if (string.IsNullOrWhiteSpace(contact.FirstName) || string.IsNullOrWhiteSpace(contact.LastName))
                 {
                     ModelState.AddModelError(string.Empty, "First Name and Last Name are required.");
                     return View(contact);
                 }
 
-                // Initialize collections if they are null
+                // Initialize collections and filter out empty entries
                 contact.Emails = contact.Emails?.Where(e => !string.IsNullOrWhiteSpace(e.EmailAddress)).ToList() ?? new List<Email>();
                 contact.Phones = contact.Phones?.Where(p => !string.IsNullOrWhiteSpace(p.PhoneNumber)).ToList() ?? new List<Phone>();
                 contact.Addresses = contact.Addresses?.Where(a => 
@@ -91,32 +108,45 @@ namespace ContactBook.Controllers
                     !string.IsNullOrWhiteSpace(a.Zip)
                 ).ToList() ?? new List<Address>();
 
-                // Link nested objects to the parent contact
+                _logger.LogInformation("After filtering - Emails: {EmailCount}, Phones: {PhoneCount}, Addresses: {AddressCount}", 
+                    contact.Emails.Count, contact.Phones.Count, contact.Addresses.Count);
+
+                // Link nested objects to the parent contact and ensure no null strings
                 foreach (var email in contact.Emails)
                 {
                     email.Contact = contact;
+                    _logger.LogInformation("Processing email: {EmailAddress}", email.EmailAddress);
                 }
 
                 foreach (var phone in contact.Phones)
                 {
                     phone.Contact = contact;
+                    phone.PhoneNumber = phone.PhoneNumber ?? string.Empty;
+                    _logger.LogInformation("Processing phone: {PhoneNumber}", phone.PhoneNumber);
                 }
 
                 foreach (var address in contact.Addresses)
                 {
                     address.Contact = contact;
-                    // Ensure null strings are empty strings to avoid database issues
                     address.Street = address.Street ?? string.Empty;
                     address.City = address.City ?? string.Empty;
                     address.State = address.State ?? string.Empty;
                     address.Zip = address.Zip ?? string.Empty;
+                    _logger.LogInformation("Processing address: {Street}, {City}, {State} {Zip}", 
+                        address.Street, address.City, address.State, address.Zip);
                 }
 
                 _context.Add(contact);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("Contact created successfully with ID: {ContactId}", contact.Id);
                 return RedirectToAction(nameof(Index));
             }
-            return View(contact);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating contact: {Message}", ex.Message);
+                ModelState.AddModelError(string.Empty, "An error occurred while saving the contact. Please try again.");
+                return View(contact);
+            }
         }
 
         // GET: Contacts/Edit/5
@@ -151,63 +181,102 @@ namespace ContactBook.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            _logger.LogInformation("Received edit data for contact {Id}: {FirstName} {LastName}", 
+                id, contact.FirstName, contact.LastName);
+            _logger.LogInformation("Collections - Emails: {EmailCount}, Phones: {PhoneCount}, Addresses: {AddressCount}", 
+                contact.Emails?.Count ?? 0, contact.Phones?.Count ?? 0, contact.Addresses?.Count ?? 0);
+
+            if (string.IsNullOrWhiteSpace(contact.FirstName) || string.IsNullOrWhiteSpace(contact.LastName))
             {
-                try
-                {
-                    // Ensure mandatory fields are set
-                    if (string.IsNullOrWhiteSpace(contact.FirstName) || string.IsNullOrWhiteSpace(contact.LastName))
-                    {
-                        ModelState.AddModelError(string.Empty, "First Name and Last Name are required.");
-                        return View(contact);
-                    }
-
-                    // Initialize collections if they are null
-                    contact.Emails = contact.Emails?.Where(e => !string.IsNullOrWhiteSpace(e.EmailAddress)).ToList() ?? new List<Email>();
-                    contact.Phones = contact.Phones?.Where(p => !string.IsNullOrWhiteSpace(p.PhoneNumber)).ToList() ?? new List<Phone>();
-                    contact.Addresses = contact.Addresses?.Where(a => 
-                        !string.IsNullOrWhiteSpace(a.Street) || 
-                        !string.IsNullOrWhiteSpace(a.City) || 
-                        !string.IsNullOrWhiteSpace(a.State) || 
-                        !string.IsNullOrWhiteSpace(a.Zip)
-                    ).ToList() ?? new List<Address>();
-
-                    // Link nested objects to the parent Contact
-                    foreach (var email in contact.Emails)
-                    {
-                        email.Contact = contact;
-                    }
-                    foreach (var phone in contact.Phones)
-                    {
-                        phone.Contact = contact;
-                    }
-                    foreach (var address in contact.Addresses)
-                    {
-                        address.Contact = contact;
-                        // Ensure null strings are empty strings to avoid database issues
-                        address.Street = address.Street ?? string.Empty;
-                        address.City = address.City ?? string.Empty;
-                        address.State = address.State ?? string.Empty;
-                        address.Zip = address.Zip ?? string.Empty;
-                    }
-
-                    _context.Update(contact);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ContactExists(contact.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                ModelState.AddModelError(string.Empty, "First Name and Last Name are required.");
+                return View(contact);
             }
-            return View(contact);
+
+            if (!ModelState.IsValid)
+            {
+                foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogWarning("ModelState error: {Error}", modelError.ErrorMessage);
+                }
+                return View(contact);
+            }
+
+            try
+            {
+                var existingContact = await _context.Contacts
+                    .Include(c => c.Emails)
+                    .Include(c => c.Phones)
+                    .Include(c => c.Addresses)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (existingContact == null)
+                {
+                    return NotFound();
+                }
+
+                existingContact.FirstName = contact.FirstName;
+                existingContact.LastName = contact.LastName;
+
+                // Initialize and filter collections
+                contact.Emails = contact.Emails?.Where(e => !string.IsNullOrWhiteSpace(e.EmailAddress)).ToList() ?? new List<Email>();
+                contact.Phones = contact.Phones?.Where(p => !string.IsNullOrWhiteSpace(p.PhoneNumber)).ToList() ?? new List<Phone>();
+                contact.Addresses = contact.Addresses?.Where(a => 
+                    !string.IsNullOrWhiteSpace(a.Street) || 
+                    !string.IsNullOrWhiteSpace(a.City) || 
+                    !string.IsNullOrWhiteSpace(a.State) || 
+                    !string.IsNullOrWhiteSpace(a.Zip)
+                ).ToList() ?? new List<Address>();
+
+                // Clear existing collections
+                _context.Emails.RemoveRange(existingContact.Emails);
+                _context.Phones.RemoveRange(existingContact.Phones);
+                _context.Addresses.RemoveRange(existingContact.Addresses);
+
+                // Update collections with new items
+                foreach (var email in contact.Emails)
+                {
+                    email.Contact = existingContact;
+                    email.ContactId = existingContact.Id;
+                    _context.Emails.Add(email);
+                }
+
+                foreach (var phone in contact.Phones)
+                {
+                    phone.Contact = existingContact;
+                    phone.ContactId = existingContact.Id;
+                    _context.Phones.Add(phone);
+                }
+
+                foreach (var address in contact.Addresses)
+                {
+                    address.Contact = existingContact;
+                    address.ContactId = existingContact.Id;
+                    address.Street = address.Street ?? string.Empty;
+                    address.City = address.City ?? string.Empty;
+                    address.State = address.State ?? string.Empty;
+                    address.Zip = address.Zip ?? string.Empty;
+                    _context.Addresses.Add(address);
+                }
+
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Contact {Id} updated successfully", id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Concurrency error updating contact {Id}", id);
+                if (!ContactExists(contact.Id))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating contact {Id}: {Message}", id, ex.Message);
+                ModelState.AddModelError(string.Empty, "An error occurred while saving the contact. Please try again.");
+                return View(contact);
+            }
         }
 
         // GET: Contacts/Delete/5

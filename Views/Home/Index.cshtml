@@ -2,7 +2,54 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero-bg {
+        background: linear-gradient(120deg, #4f8cff 0%, #38b6ff 100%);
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0 0 32px 32px;
+        box-shadow: 0 4px 24px rgba(79,140,255,0.08);
+    }
+    .hero-content {
+        color: #fff;
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        letter-spacing: 1px;
+    }
+    .hero-desc {
+        font-size: 1.3rem;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+    .btn-contacts {
+        background: #fff;
+        color: #4f8cff;
+        font-weight: 600;
+        border-radius: 24px;
+        padding: 0.75rem 2.5rem;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(79,140,255,0.10);
+        transition: background 0.2s, color 0.2s;
+    }
+    .btn-contacts:hover {
+        background: #4f8cff;
+        color: #fff;
+    }
+</style>
+
+<div class="hero-bg">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to ContactBook</h1>
+        <p class="hero-desc">A modern, simple, and beautiful way to manage your contacts.<br />
+        Add, edit, and export your contacts with ease.</p>
+        <a href="/Contacts" class="btn btn-contacts">Go to Contacts</a>
+    </div>
 </div>

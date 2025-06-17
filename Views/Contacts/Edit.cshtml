@@ -11,7 +11,7 @@
 <div class="row">
     <div class="col-md-6">
         <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
 
             <!-- Basic Info -->
@@ -39,7 +39,7 @@
                                 <div class="form-group mb-2 email-entry">
                                     <div class="input-group">
                                         <input type="hidden" name="Emails[@i].Id" value="@Model.Emails.ElementAt(i).Id" />
-                                        <input type="hidden" name="Emails[@i].ContactId" value="@Model.Emails.ElementAt(i).ContactId" />
+                                        <input type="hidden" name="Emails[@i].ContactId" value="@Model.Id" />
                                         <input name="Emails[@i].EmailAddress" class="form-control" type="email" value="@Model.Emails.ElementAt(i).EmailAddress" />
                                         <button type="button" class="btn btn-danger remove-email">Remove</button>
                                     </div>
@@ -63,7 +63,7 @@
                                 <div class="form-group mb-2 phone-entry">
                                     <div class="input-group">
                                         <input type="hidden" name="Phones[@i].Id" value="@Model.Phones.ElementAt(i).Id" />
-                                        <input type="hidden" name="Phones[@i].ContactId" value="@Model.Phones.ElementAt(i).ContactId" />
+                                        <input type="hidden" name="Phones[@i].ContactId" value="@Model.Id" />
                                         <input name="Phones[@i].PhoneNumber" class="form-control" type="tel" value="@Model.Phones.ElementAt(i).PhoneNumber" />
                                         <button type="button" class="btn btn-danger remove-phone">Remove</button>
                                     </div>
@@ -86,7 +86,7 @@
                             {
                                 <div class="address-entry mb-3 border p-3">
                                     <input type="hidden" name="Addresses[@i].Id" value="@Model.Addresses.ElementAt(i).Id" />
-                                    <input type="hidden" name="Addresses[@i].ContactId" value="@Model.Addresses.ElementAt(i).ContactId" />
+                                    <input type="hidden" name="Addresses[@i].ContactId" value="@Model.Id" />
                                     <div class="form-group mb-2">
                                         <label>Street</label>
                                         <input name="Addresses[@i].Street" class="form-control" value="@Model.Addresses.ElementAt(i).Street" />
@@ -124,78 +124,88 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
     <script>
+        function reindexEntries(containerSelector, entrySelector) {
+            $(containerSelector).children(entrySelector).each(function (idx) {
+                $(this).find('input, select, textarea').each(function () {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        var newName = name.replace(/\[\d+\]/g, '[' + idx + ']');
+                        $(this).attr('name', newName);
+                    }
+                });
+            });
+        }
         $(document).ready(function () {
-            let emailCount = $('#emailContainer .email-entry').length;
-            let phoneCount = $('#phoneContainer .phone-entry').length;
-            let addressCount = $('#addressContainer .address-entry').length;
-
             // Add Email
             $('#addEmail').click(function () {
-                const html = `
-                    <div class="form-group mb-2 email-entry">
-                        <div class="input-group">
-                            <input name="Emails[${emailCount}].EmailAddress" class="form-control" type="email" />
-                            <button type="button" class="btn btn-danger remove-email">Remove</button>
-                        </div>
-                    </div>`;
+                var count = $('#emailContainer .email-entry').length;
+                var html = `<div class="form-group mb-2 email-entry">
+                    <div class="input-group">
+                        <input type="hidden" name="Emails[${count}].Id" value="0" />
+                        <input type="hidden" name="Emails[${count}].ContactId" value="${$('#Id').val()}" />
+                        <input name="Emails[${count}].EmailAddress" class="form-control" type="email" />
+                        <button type="button" class="btn btn-danger remove-email">Remove</button>
+                    </div>
+                </div>`;
                 $('#emailContainer').append(html);
-                emailCount++;
+                reindexEntries('#emailContainer', '.email-entry');
             });
-
             // Add Phone
             $('#addPhone').click(function () {
-                const html = `
-                    <div class="form-group mb-2 phone-entry">
-                        <div class="input-group">
-                            <input name="Phones[${phoneCount}].PhoneNumber" class="form-control" type="tel" />
-                            <button type="button" class="btn btn-danger remove-phone">Remove</button>
-                        </div>
-                    </div>`;
+                var count = $('#phoneContainer .phone-entry').length;
+                var html = `<div class="form-group mb-2 phone-entry">
+                    <div class="input-group">
+                        <input type="hidden" name="Phones[${count}].Id" value="0" />
+                        <input type="hidden" name="Phones[${count}].ContactId" value="${$('#Id').val()}" />
+                        <input name="Phones[${count}].PhoneNumber" class="form-control" type="tel" />
+                        <button type="button" class="btn btn-danger remove-phone">Remove</button>
+                    </div>
+                </div>`;
                 $('#phoneContainer').append(html);
-                phoneCount++;
+                reindexEntries('#phoneContainer', '.phone-entry');
             });
-
             // Add Address
             $('#addAddress').click(function () {
-                const html = `
-                    <div class="address-entry mb-3 border p-3">
-                        <div class="form-group mb-2">
-                            <label>Street</label>
-                            <input name="Addresses[${addressCount}].Street" class="form-control" />
+                var count = $('#addressContainer .address-entry').length;
+                var html = `<div class="address-entry mb-3 border p-3">
+                    <input type="hidden" name="Addresses[${count}].Id" value="0" />
+                    <input type="hidden" name="Addresses[${count}].ContactId" value="${$('#Id').val()}" />
+                    <div class="form-group mb-2">
+                        <label>Street</label>
+                        <input name="Addresses[${count}].Street" class="form-control" />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label>City</label>
+                            <input name="Addresses[${count}].City" class="form-control" />
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
-                                <label>City</label>
-                                <input name="Addresses[${addressCount}].City" class="form-control" />
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label>State</label>
-                                <input name="Addresses[${addressCount}].State" class="form-control" />
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label>Zip</label>
-                                <input name="Addresses[${addressCount}].Zip" class="form-control" />
-                            </div>
+                        <div class="col-md-3 mb-2">
+                            <label>State</label>
+                            <input name="Addresses[${count}].State" class="form-control" />
                         </div>
-                        <button type="button" class="btn btn-danger remove-address">Remove Address</button>
-                    </div>`;
+                        <div class="col-md-3 mb-2">
+                            <label>Zip</label>
+                            <input name="Addresses[${count}].Zip" class="form-control" />
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-address">Remove Address</button>
+                </div>`;
                 $('#addressContainer').append(html);
-                addressCount++;
+                reindexEntries('#addressContainer', '.address-entry');
             });
-
             // Remove buttons
             $(document).on('click', '.remove-email', function() {
                 $(this).closest('.email-entry').remove();
+                reindexEntries('#emailContainer', '.email-entry');
             });
-
             $(document).on('click', '.remove-phone', function() {
                 $(this).closest('.phone-entry').remove();
+                reindexEntries('#phoneContainer', '.phone-entry');
             });
-
             $(document).on('click', '.remove-address', function() {
                 $(this).closest('.address-entry').remove();
+                reindexEntries('#addressContainer', '.address-entry');
             });
         });
     </script>

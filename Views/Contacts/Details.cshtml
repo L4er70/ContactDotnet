@@ -22,6 +22,42 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.LastName)
         </dd>
+        <dt class = "col-sm-2">Emails</dt>
+        <dd class = "col-sm-10">
+            @if (Model.Emails != null && Model.Emails.Any()) {
+                <ul>
+                @foreach (var email in Model.Emails) {
+                    <li>@email.EmailAddress</li>
+                }
+                </ul>
+            } else {
+                <span>No emails</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">Phone Numbers</dt>
+        <dd class = "col-sm-10">
+            @if (Model.Phones != null && Model.Phones.Any()) {
+                <ul>
+                @foreach (var phone in Model.Phones) {
+                    <li>@phone.PhoneNumber</li>
+                }
+                </ul>
+            } else {
+                <span>No phone numbers</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">Addresses</dt>
+        <dd class = "col-sm-10">
+            @if (Model.Addresses != null && Model.Addresses.Any()) {
+                <ul>
+                @foreach (var address in Model.Addresses) {
+                    <li>@address.Street, @address.City, @address.State, @address.Zip</li>
+                }
+                </ul>
+            } else {
+                <span>No addresses</span>
+            }
+        </dd>
     </dl>
 </div>
 <div>
